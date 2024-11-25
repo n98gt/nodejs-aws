@@ -1,0 +1,28 @@
+---
+{{- if and ( .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" ) .Values.phpFpmMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "app.fullname" . }}
+  namespace: {{ default (include "app.namespace" .) .Values.phpFpmMonitor.namespace }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    {{- range $key, $val := $.Values.extraLabels }}
+    {{ $key }}: {{ $val }}
+    {{- end }}
+spec:
+  jobLabel: app.kubernetes.io/instance
+  endpoints:
+    -
+      path: {{ .Values.prometheusTelemetryPath }}
+      port: {{ .Values.prometheusPortName }}
+      {{- with .Values.phpFpmMonitor.interval }}
+      interval: {{ . }}
+      {{- end }}
+  namespaceSelector:
+    matchNames:
+      - {{ include "app.namespace" . }}
+  selector:
+    matchLabels:
+      {{- include "app.selectorLabels" . | nindent 6 }}
+{{- end }}

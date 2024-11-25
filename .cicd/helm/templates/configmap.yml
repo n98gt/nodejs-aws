@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ include "app.namespace" . }}
+  name: {{ include "app.nginxConfigMapName" . }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+    {{- range $key, $val := $.Values.extraLabels }}
+    {{ $key }}: {{ $val }}
+    {{- end }}
+
+data:
+  {{ .Values.nginxConfigFileName }}: |
+    {{- (tpl .Values.nginxConfig $) | nindent 4 }}
+  {{ .Values.websiteConfigFileName }}: |
+    {{- (tpl .Values.websiteConfig $) | nindent 4 }}
